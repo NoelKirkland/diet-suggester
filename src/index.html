@@ -54,6 +54,93 @@
       <div class="col results colWithCss">
         <h1>Diet Suggestion</h1>
         <p id="diet-results"></p>
+        <p id="diet-results"></p>
+          <p>Add reminders for daily caloric intake to your Google Calendar</p>
+          <p><button type="button" class="btn btn-primary" id="authorize-button" style>Authorize</button></p>
+          <p><button type="button" class="btn btn-primary" id="add-to-calendar" style="visibility: hidden">Add to Calendar</button></p>
+          <br>
+          <script>
+
+            const clientId = '${Google api client ID}.apps.googleusercontent.com';
+            const apiKey = '${Google api key}';
+            const scopes = 'https://www.googleapis.com/auth/calendar';
+
+            let authorizeButton = document.getElementById('authorize-button');
+            authorizeButton.onclick = handleAuthClick;
+            let addButton = document.getElementById('add-to-calendar');
+            let userCalories;
+            let userTime;
+            
+              function handleClientLoad() {
+                console.log("Inside handleClientLoad ...");
+                gapi.client.setApiKey(apiKey);
+                window.setTimeout(checkAuth,100);
+              }
+            
+              function checkAuth() {
+                console.log("Inside checkAuth ...");
+                gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: true}, handleAuthResult);
+              }
+            
+              function handleAuthResult(authResult) {
+                console.log("Inside handleAuthResult ...");
+                if (authResult && !authResult.error) {
+                  authorizeButton.style.visibility = 'hidden';
+                  addButton.style.visibility = 'visible'; 
+                  gapi.client.load('calendar', 'v3', function(){ 
+                  console.log("Calendar library loaded.");
+                  });
+                } else {
+                  console.log(authResult.details);
+                  authorizeButton.style.visibility = '';
+                  authorizeButton.onclick = handleAuthClick;
+                }
+              }
+            
+              function handleAuthClick(event) {
+                gapi.auth.authorize({client_id: clientId, scope: scopes, immediate: false}, handleAuthResult);
+                return false;
+              }
+
+              addButton.onclick = function(){
+                let userCalories = document.getElementById('diet-results').textContent;
+                let userTime = document.querySelector('#time-frame').value;
+                console.log(userCalories);
+                console.log(userTime);
+                if (userCalories) 
+                  createEvent(userCalories, userTime);
+              }
+
+              function createEvent(userCalories, userTime) {
+                let date = new Date();
+                date.setHours(6,00);
+                let resource = {
+                    "summary": 'Daily Caloric Intake Reminder',
+                    "description": userCalories,
+                    "start": {
+                      "dateTime": date,
+                      "timeZone": "America/Los_Angeles"
+                    },
+                    "end": {
+                      "dateTime": date,
+                      "timeZone": "America/Los_Angeles"
+                    },
+                    "recurrence": [
+                      `RRULE:FREQ=DAILY;COUNT=${userTime}`
+                    ],
+                    };
+                let request = gapi.client.calendar.events.insert({
+                  'calendarId': 'primary',
+                  'resource': resource
+                });
+
+                request.execute(function(resp) {
+                  console.log(resp);
+                  alert("Your event was added to the calendar.");
+                });
+              }
+            </script>
+            <script src="https://apis.google.com/js/client.js?onload=handleClientLoad"></script>
       </div>
       <div class="col results colWithCss">
         <label for="food-input" class="largerLabel">Please enter a food to see how many calories are in one ounce</label> <br>
