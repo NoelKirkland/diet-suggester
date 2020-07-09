@@ -1,0 +1,17 @@
+body {
+  text-align: center;
+}
+.colWithCss {
+  border: 1px solid lightgray;
+  border-radius: 10px;
+  margin: 4px;
+}
+
+.results {
+  display: none;
+}
+
+.largerLabel {
+  font-size: larger;
+  font-weight: bold;
+}
